@@ -15,6 +15,8 @@ subscriber.subscribe('NPM_FILE');
 
 function extractPackageDependencies(packageJson) {
     //@todo Remove promisse
+    console.log('Init');
+
     return new Promise((resolve) => {
         resolve(packageJson);
     });
