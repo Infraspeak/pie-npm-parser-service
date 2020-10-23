@@ -12,7 +12,7 @@ const publisher = redis.createClient(clientOptions);
 let headers
 let extractedPackage
 
-subscriber.on("message", function (channel, message) {
+subscriber.on("message",  (channel, message) => {
     extractedPackage = extractPackageDependencies(JSON.parse(message).payload);
     headers = (JSON.parse(message).headers)
     extractedPackage.then(package => {
@@ -34,7 +34,7 @@ function extractPackageDependencies(packageJson) {
 
 async function searchForRepositoryInformation(repositoryName) {
     return new Promise((resolve) => {
-        exec(`npm view ${repositoryName} -json`, function (err, stdout) {
+        exec(`npm view ${repositoryName} -json`, (err, stdout) => {
             if (err) {
                 throw Error('cannot read repository name')
             }
