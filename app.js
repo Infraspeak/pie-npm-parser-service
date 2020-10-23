@@ -1,5 +1,5 @@
 fs = require('fs');
-var exec = require('child_process').exec;
+const exec = require('child_process').exec;
 const redis = require("redis");
 const clientOptions = {
     'host': '127.0.0.1',
@@ -10,20 +10,8 @@ const subscriber = redis.createClient(clientOptions);
 const publisher = redis.createClient(clientOptions);
 
 let headers
-let extractedPackage
-
-subscriber.on("message",  (channel, message) => {
-    extractedPackage = extractPackageDependencies(JSON.parse(message).payload);
-    headers = (JSON.parse(message).headers)
-    extractedPackage.then(package => {
-        Object.keys(package.dependencies).map((key) => {
-            searchForRepositoryInformation(`${key}@${package.dependencies[key]}`).then(repoInfo => extractURL(repoInfo, headers))
-        })
-    });
-});
 
 subscriber.subscribe('NPM_FILE');
-
 
 function extractPackageDependencies(packageJson) {
     //@todo Remove promisse
@@ -36,7 +24,7 @@ async function searchForRepositoryInformation(repositoryName) {
     return new Promise((resolve) => {
         exec(`npm view ${repositoryName} -json`, (err, stdout) => {
             if (err) {
-                throw Error('cannot read repository name')
+                throw Error('Cannot read repository name')
             }
             const packageInfo = JSON.parse(stdout)
             resolve({
@@ -65,3 +53,13 @@ function publishResponse(queue, payload) {
     publisher.publish(queue, JSON.stringify({ headers, payload }))
 }
 
+//wait for message to arrive
+subscriber.on("message",  (channel, message) => {
+    let extractedPackage = extractPackageDependencies(JSON.parse(message).payload);
+    headers = (JSON.parse(message).headers)
+    extractedPackage.then(package => {
+        Object.keys(package.dependencies).map((key) => {
+            searchForRepositoryInformation(`${key}@${package.dependencies[key]}`).then(repoInfo => extractURL(repoInfo, headers))
+        })
+    });
+});
