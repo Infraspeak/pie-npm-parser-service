@@ -12,7 +12,7 @@ const publisher = redis.createClient(clientOptions);
 let headers
 let extractedPackage
 
-subscriber.on("message",  (message) => {
+subscriber.on("message",  (channel, message) => {
     extractedPackage = extractPackageDependencies(JSON.parse(message).payload);
     headers = (JSON.parse(message).headers)
     extractedPackage.then(package => {
