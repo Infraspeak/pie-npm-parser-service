@@ -2,8 +2,8 @@ fs = require('fs');
 const exec = require('child_process').exec;
 const redis = require("redis");
 const clientOptions = {
-    'host': '127.0.0.1',
-    'port': '6379',
+    'host': process.env.REDIS_HOST,
+    'port': process.env.REDIS_PORT,
 };
 
 const subscriber = redis.createClient(clientOptions);
