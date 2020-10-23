@@ -9,15 +9,17 @@ const clientOptions = {
 const subscriber = redis.createClient(clientOptions);
 const publisher = redis.createClient(clientOptions);
 
-subscriber.on("message", function (channel, message) {
+let headers
+let extractedPackage
 
-    let extractedDependencies = extractPackageDependencies(JSON.parse(message).payload);
-    extractedDependencies.then(dependencies => {
-        Object.keys(dependencies).map((key) => {
-            searchForRepositoryInformation(`${key}@${dependencies[key]}`).then(repoInfo => sendToQueue(repoInfo))
+subscriber.on("message", function (channel, message) {
+    extractedPackage = extractPackageDependencies(JSON.parse(message).payload);
+    headers = (JSON.parse(message).headers)
+    extractedPackage.then(package => {
+        Object.keys(package.dependencies).map((key) => {
+            searchForRepositoryInformation(`${key}@${package.dependencies[key]}`).then(repoInfo => extractURL(repoInfo, headers))
         })
     });
-
 });
 
 subscriber.subscribe('NPM_FILE');
@@ -26,7 +28,7 @@ subscriber.subscribe('NPM_FILE');
 function extractPackageDependencies(packageJson) {
     //@todo Remove promisse
     return new Promise((resolve) => {
-        resolve(packageJson.dependencies);
+        resolve(packageJson);
     });
 }
 
@@ -36,29 +38,30 @@ async function searchForRepositoryInformation(repositoryName) {
             if (err) {
                 throw Error('cannot read repository name')
             }
+            const packageInfo = JSON.parse(stdout)
             resolve({
-                name: JSON.parse(stdout).name,
-                url: JSON.parse(stdout).repository.url,
+                name: packageInfo.name,
+                url: packageInfo.repository.url,
+                version: packageInfo.version
             })
         })
     })
 }
 
-function sendToQueue(repoInfo) {
-    let queue = 'REPO_';
+function extractURL(repoInfo) {
 
-    if (repoInfo.url.includes('github.com')) {
-        queue = `${queue}GITHUB.COM`
+    const pattern = /(.+:\/\/)?([^\/]+)(\/.*)*/i;
+    
+    // this is used to join the 'git@github.com' and 'github.com' in the same format (github.com)
+    if (repoInfo.url.includes('@')) {
+        repoInfo.url = repoInfo.url.split('@')[1]
     }
+    var hostname = `REPO_${pattern.exec(repoInfo.url)[2].toUpperCase()}`;
 
-    if (repoInfo.url.includes('gitlab.com')) {
-        queue = `${queue}GITLAB.COM`
-    }
+    publishResponse(hostname, repoInfo)
+}
 
-    if (repoInfo.url.includes('bitbucket.com')) {
-        queue = `${queue}BITBUCKET.COM`
-    }
-
-    publisher.publish(queue, JSON.stringify({payload: repoInfo}));
+function publishResponse(queue, payload) {
+    publisher.publish(queue, JSON.stringify({ headers, payload }))
 }
 
