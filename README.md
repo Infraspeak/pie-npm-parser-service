@@ -43,7 +43,7 @@ payload expected:
 
 Sent queue
 
-Queue Name: `GITLAB.COM, BITBUCKET.COM, GITHUB.COM`
+Queue Name: `REPO_* (GITLAB.COM, BITBUCKET.COM, GITHUB.COM ...)`
 
 payload sent: `
 {
@@ -51,12 +51,9 @@ payload sent: `
         "id" : 'xxxxxxx'
     },
     "payload": {
-        "name": "Sample",
-        "version": "0.81.0",
-        "private": true,
-        "dependencies": {
-            "@bugsnag/js": "7.2.0"
-        }
+        "name": "@bugsnag/js",
+        "version": "7.2.0",
+        "url": "https://github.com/bugsnag/bugsnag-js"
     }
 }
 `
