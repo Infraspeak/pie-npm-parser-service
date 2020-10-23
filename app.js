@@ -1,25 +1,34 @@
-
 fs = require('fs');
 var exec = require('child_process').exec;
+const redis = require("redis");
+const clientOptions = {
+    'host': '127.0.0.1',
+    'port': '6379',
+};
 
-let extractedDependencies = extractPackageDependencies();
+const subscriber = redis.createClient(clientOptions);
+const publisher = redis.createClient(clientOptions);
 
-function extractPackageDependencies() {
-    return new Promise((resolve) => {
-        fs.readFile('./package-mock.json', 'utf8', (err, data) => {
-            if (err) {
-                throw Error('cannot read file')
-            }
-            resolve(JSON.parse(data).dependencies)
+subscriber.on("message", function (channel, message) {
+
+    let extractedDependencies = extractPackageDependencies(JSON.parse(message).payload);
+    extractedDependencies.then(dependencies => {
+        Object.keys(dependencies).map((key) => {
+            searchForRepositoryInformation(`${key}@${dependencies[key]}`).then(repoInfo => sendToQueue(repoInfo))
         })
     });
-}
 
-extractedDependencies.then(dependencies => {
-    Object.keys(dependencies).map((key) => {
-        searchForRepositoryInformation(`${key}@${dependencies[key]}`).then(repoInfo => sendToQueue(repoInfo))
-    })
-})
+});
+
+subscriber.subscribe('NPM_FILE');
+
+
+function extractPackageDependencies(packageJson) {
+    //@todo Remove promisse
+    return new Promise((resolve) => {
+        resolve(packageJson.dependencies);
+    });
+}
 
 async function searchForRepositoryInformation(repositoryName) {
     return new Promise((resolve) => {
@@ -36,7 +45,7 @@ async function searchForRepositoryInformation(repositoryName) {
 }
 
 function sendToQueue(repoInfo) {
-    let queue = 'REPO_'
+    let queue = 'REPO_';
 
     if (repoInfo.url.includes('github.com')) {
         queue = `${queue}GITHUB.COM`
@@ -50,8 +59,6 @@ function sendToQueue(repoInfo) {
         queue = `${queue}BITBUCKET.COM`
     }
 
-    return {
-        payload: repoInfo
-    }
+    publisher.publish(queue, JSON.stringify({payload: repoInfo}));
 }
 
