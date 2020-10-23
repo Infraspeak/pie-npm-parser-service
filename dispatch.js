@@ -11,6 +11,7 @@ fs.readFile('./package-mock.json', 'utf8', (err, data) => {
         throw Error('cannot read file')
     }
 
+    console.log('init');
     publisher.publish("NPM_FILE", JSON.stringify({headers: { websocketId: '1231231'}, payload: JSON.parse(data)}));
     publisher.quit();
 });

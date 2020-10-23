@@ -61,4 +61,3 @@ function sendToQueue(repoInfo) {
 
     publisher.publish(queue, JSON.stringify({payload: repoInfo}));
 }
-
