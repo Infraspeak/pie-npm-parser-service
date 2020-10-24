@@ -5,7 +5,6 @@ read all the dependencies and give back all information about them and split by
 their repository.
 
 ## Project
-
 #### Build Docker
 `docker build -t {nodeimage} .`  
 
