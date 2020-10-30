@@ -1,6 +1,6 @@
 fs = require('fs');
 const exec = require('child_process').exec;
-const redis = require("redis");
+const redis = require('redis');
 const clientOptions = {
     'host': process.env.REDIS_HOST,
     'port': process.env.REDIS_PORT,
@@ -56,7 +56,7 @@ function publishResponse(queue, payload) {
 }
 
 //wait for message to arrive
-subscriber.on("message",  (channel, message) => {
+subscriber.on('message',  (channel, message) => {
     let extractedPackage = extractPackageDependencies(JSON.parse(message).payload);
     headers = (JSON.parse(message).headers)
     extractedPackage.then(package => {
