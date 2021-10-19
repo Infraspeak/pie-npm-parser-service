@@ -1,27 +1,21 @@
 # NPM PARSE SERVICE
-## DESCRIPTION
+## Description
 This service handles the content from `package.json`, 
 read all the dependencies and give back all information about them and split by
 their repository.
 
-## Project
+## Project Setup
 #### Build Docker
-`docker build -t {nodeimage} .`  
+`docker build -t infraspeak-pie/npm_parser_service -f .docker/Dockerfile .`  
 
+## Project Run
 #### Run Docker
-`docker run -v $(pwd):/usr/src/app  --network=host -ti --rm {nodeimage}`
+`docker run --rm --network infraspeak-pie infraspeak-pie/npm_parser_service`
 
-#### HOW IT WORKS
+## How it works
 
-- Run Docker on section `RUN DOCKER PROJECT`
-- Run `node testing/listener.js` to listener the queue with values sent from this service 
-- Run `cd testing && node dispatch.js` to init process on this service 
-
-#### Instructions
-
-Listened queue
-
-Queue Name: `NPM_FILE`
+### Listened event
+Event Name: `NPM_FILE`
 
 payload expected:
 `
@@ -40,9 +34,8 @@ payload expected:
  }
 `
 
-Sent queue
-
-Queue Name: `REPO_* (GITLAB.COM, BITBUCKET.COM, GITHUB.COM ...)`
+### Sent event
+Event Name: `REPO_* (GITLAB.COM, BITBUCKET.COM, GITHUB.COM ...)`
 
 payload sent: `
 {
@@ -56,8 +49,3 @@ payload sent: `
     }
 }
 `
-
-### Dependencies
- - Docker
- - Node
- - Redis
