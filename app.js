@@ -28,7 +28,13 @@ async function searchForRepositoryInformation(repositoryName) {
             if (err) {
                 throw Error('Cannot read repository name')
             }
-            const packageInfo = JSON.parse(stdout)
+
+            let packageInfo = JSON.parse(stdout)
+
+            if (Array.isArray(packageInfo)) {
+                packageInfo = packageInfo[0]
+            }
+
             resolve({
                 name: packageInfo.name,
                 url: packageInfo.repository.url,
