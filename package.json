@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/Infraspeak/npm_parser_service#readme",
   "dependencies": {
+    "@soketi/soketi": "^1.4.0",
     "redis": "^3.0.2"
   }
 }
