@@ -58,7 +58,7 @@ function extractURL(repoInfo) {
     
         publishResponse(hostname, repoInfo)
     } catch {
-        console.log('Error on parsing repository data!')
+        console.error('Error on parsing repository data!')
     }
    
 }
