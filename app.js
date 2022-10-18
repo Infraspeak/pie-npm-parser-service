@@ -23,8 +23,10 @@ function extractPackageDependencies(packageJson) {
 }
 
 async function searchForRepositoryInformation(repositoryName) {
+    const repositoryNameUpdated = repositoryName.replace('^', '').replace('~', '')
+
     return new Promise((resolve) => {
-        exec(`npm view ${repositoryName} -json`, (err, stdout) => {
+        exec(`npm view ${repositoryNameUpdated} repository.url -json`, (err, stdout) => {
             if (err) {
                 throw Error('Cannot read repository name')
             }
@@ -35,29 +37,33 @@ async function searchForRepositoryInformation(repositoryName) {
                 packageInfo = packageInfo[0]
             }
 
-            resolve({
-                name: packageInfo.name,
-                url: packageInfo.repository.url,
-                version: packageInfo.version
-            })
+            resolve(getRepositoryInformation(repositoryNameUpdated, packageInfo))
         })
     })
 }
 
-function extractURL(repoInfo) {
+function getRepositoryInformation(repositoryName,packageInfo) {
+    return {
+        name: repositoryName.split('@')[0],
+        url: packageInfo,
+        version: repositoryName.split('@')[1]
+    }
+}
+
+function extractURL(repoInfo, headers) {
 
     const pattern = /(.+:\/\/)?([^\/]+)(\/.*)*/i;
-    
+
     // this is used to join the 'git@github.com' and 'github.com' in the same format (github.com)
     if (repoInfo.url.includes('@')) {
         repoInfo.url = repoInfo.url.split('@')[1]
     }
-    var hostname = `REPO_${pattern.exec(repoInfo.url)[2].toUpperCase()}`;
+    const hostname = `REPO_${pattern.exec(repoInfo.url)[2].toUpperCase()}`;
 
-    publishResponse(hostname, repoInfo)
+    publishResponse(hostname, repoInfo, headers)
 }
 
-function publishResponse(queue, payload) {
+function publishResponse(queue, payload, headers) {
     publisher.publish(queue, JSON.stringify({ headers, payload }))
 }
 
