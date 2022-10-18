@@ -1,8 +1,6 @@
 fs = require('fs');
 const exec = require('child_process').exec;
 const redis = require('redis');
-const PusherJS = require('pusher-js');
-
 const clientOptions = {
     'host': process.env.REDIS_HOST,
     'port': process.env.REDIS_PORT,
