@@ -35,7 +35,7 @@ let client = new PusherJS('app-key', {
 });
 
 client.subscribe('chat-room').bind('message', (message) => {
-    alert(`${message.sender} says: ${message.content}`);
+    console.log(`${message.sender} says: ${message.content}`);
 });
 
 
