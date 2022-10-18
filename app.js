@@ -25,44 +25,51 @@ function extractPackageDependencies(packageJson) {
 async function searchForRepositoryInformation(repositoryName) {
     return new Promise((resolve) => {
         exec(`npm view ${repositoryName} -json`, (err, stdout) => {
-            if (err) {
-                throw Error('Cannot read repository name')
+            try {
+
+                let packageInfo = JSON.parse(stdout)
+
+                if (Array.isArray(packageInfo)) {
+                    packageInfo = packageInfo[0]
+                }
+
+                resolve({
+                    name: packageInfo.name,
+                    url: packageInfo.repository.url,
+                    version: packageInfo.version
+                })
+
+            } catch(err) {
+                console.error(err)
             }
-
-            let packageInfo = JSON.parse(stdout)
-
-            if (Array.isArray(packageInfo)) {
-                packageInfo = packageInfo[0]
-            }
-
-            resolve({
-                name: packageInfo.name,
-                url: packageInfo.repository.url,
-                version: packageInfo.version
-            })
         })
     })
 }
 
 function extractURL(repoInfo) {
+    try {
+        const pattern = /(.+:\/\/)?([^\/]+)(\/.*)*/i;
 
-    const pattern = /(.+:\/\/)?([^\/]+)(\/.*)*/i;
+        // this is used to join the 'git@github.com' and 'github.com' in the same format (github.com)
+        if (repoInfo.url.includes('@')) {
+            repoInfo.url = repoInfo.url.split('@')[1]
+        }
+        var hostname = `REPO_${pattern.exec(repoInfo.url)[2].toUpperCase()}`;
     
-    // this is used to join the 'git@github.com' and 'github.com' in the same format (github.com)
-    if (repoInfo.url.includes('@')) {
-        repoInfo.url = repoInfo.url.split('@')[1]
+        publishResponse(hostname, repoInfo)
+    } catch {
+        console.log('Error on parsing repository data!')
     }
-    var hostname = `REPO_${pattern.exec(repoInfo.url)[2].toUpperCase()}`;
-
-    publishResponse(hostname, repoInfo)
+   
 }
 
 function publishResponse(queue, payload) {
     publisher.publish(queue, JSON.stringify({ headers, payload }))
+    console.log('Response published!')
 }
 
 //wait for message to arrive
-subscriber.on('message',  (channel, message) => {
+subscriber.on('message', (channel, message) => {
     let extractedPackage = extractPackageDependencies(JSON.parse(message).payload);
     headers = (JSON.parse(message).headers)
     extractedPackage.then(package => {
