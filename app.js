@@ -1,6 +1,8 @@
 fs = require('fs');
 const exec = require('child_process').exec;
 const redis = require('redis');
+const PusherJS = require('pusher-js');
+
 const clientOptions = {
     'host': process.env.REDIS_HOST,
     'port': process.env.REDIS_PORT,
@@ -8,6 +10,7 @@ const clientOptions = {
 
 const subscriber = redis.createClient(clientOptions);
 const publisher = redis.createClient(clientOptions);
+
 
 let headers
 
@@ -21,6 +24,20 @@ function extractPackageDependencies(packageJson) {
         resolve(packageJson);
     });
 }
+
+let client = new PusherJS('app-key', {
+    wsHost: '127.0.0.1',
+    wsPort: 6001,
+    forceTLS: false,
+    encrypted: true,
+    disableStats: true,
+    enabledTransports: ['ws', 'wss'],
+});
+
+client.subscribe('chat-room').bind('message', (message) => {
+    console.log(`${message.sender} says: ${message.content}`);
+});
+
 
 async function searchForRepositoryInformation(repositoryName) {
     const repositoryNameUpdated = repositoryName.replace('^', '').replace('~', '')
