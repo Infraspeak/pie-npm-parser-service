@@ -24,7 +24,6 @@ function extractPackageDependencies(packageJson) {
     });
 }
 
-
 let client = new PusherJS('app-key', {
     wsHost: '127.0.0.1',
     wsPort: 6001,
